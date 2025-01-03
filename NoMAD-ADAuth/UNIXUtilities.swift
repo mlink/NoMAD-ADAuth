@@ -10,6 +10,7 @@
 import Foundation
 import SystemConfiguration
 import IOKit
+import os
 
 
 /// A simple wrapper around NSTask
@@ -20,7 +21,6 @@ import IOKit
 ///   - waitForTermination: An optional `Bool` Should the the output be delayed until the task exits. Deafults to 'true'.
 /// - Returns: The combined result of standard output and standard error from the command.
 public func cliTask(_ command: String, arguments: [String]? = nil, waitForTermination: Bool = true) -> String {
-
     var commandLaunchPath: String
     var commandPieces: [String]
     
@@ -68,6 +68,8 @@ public func cliTask(_ command: String, arguments: [String]? = nil, waitForTermin
     myTask.standardOutput = outputPipe
     myTask.standardInput = myInputPipe
     myTask.standardError = myErrorPipe
+    
+    os.Logger().debug("💻 - \(commandLaunchPath) \(commandPieces)")
 
     myTask.launch()
     
@@ -89,6 +91,8 @@ public func cliTask(_ command: String, arguments: [String]? = nil, waitForTermin
 
     let error = myErrorPipe.fileHandleForReading.readDataToEndOfFile()
     let outputError = NSString(data: error, encoding: String.Encoding.utf8.rawValue)! as String
+    
+    os.Logger().debug("🏁\n\(outputString + outputError)")
     
     return outputString + outputError
 }
