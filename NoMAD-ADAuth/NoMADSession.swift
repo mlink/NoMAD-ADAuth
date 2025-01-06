@@ -538,10 +538,10 @@ public class NoMADSession: NSObject {
         }
     }
 
-    fileprivate func parseExpirationDate(_ computedExpireDateRaw: String?, _ passwordAging: inout Bool, _ userPasswordExpireDate: inout Date, _ userPasswordUACFlag: String, _ serverPasswordExpirationDefault: inout Double, _ tempPasswordSetDate: Date) {
-        if computedExpireDateRaw != nil {
+    fileprivate func parseExpirationDate(_ computedExpireDateRaw: String?, _ passwordAging: inout Bool, _ userPasswordExpireDate: inout Date?, _ userPasswordUACFlag: String, _ serverPasswordExpirationDefault: inout Double, _ tempPasswordSetDate: Date) {
+        if let computedExpireDateRaw {
             // Windows Server 2008 and Newer
-            if Int(computedExpireDateRaw!) ==  Int.max {
+            if Int(computedExpireDateRaw) ==  Int.max {
 
                 // Password doesn't expire
                 passwordAging = false
@@ -549,7 +549,7 @@ public class NoMADSession: NSObject {
                 // Set expiration to far away from now
                 userPasswordExpireDate = Date.distantFuture
 
-            } else if (Int(computedExpireDateRaw!) == 0) {
+            } else if (Int(computedExpireDateRaw) == 0) {
 
                 // password needs to be reset
                 passwordAging = true
@@ -560,7 +560,7 @@ public class NoMADSession: NSObject {
             } else {
                 // Password expires
                 passwordAging = true
-                userPasswordExpireDate = NSDate(timeIntervalSince1970: (Double(computedExpireDateRaw!)!)/10000000-11644473600) as Date
+                userPasswordExpireDate = NSDate(timeIntervalSince1970: (Double(computedExpireDateRaw)!)/10000000-11644473600) as Date
             }
         } else {
             // Older then Windows Server 2008
@@ -573,11 +573,18 @@ public class NoMADSession: NSObject {
             } else {
                 passwordExpirationLength = ""
             }
+            
+            // -9223372036854775808 is never
+            guard passwordExpirationLength != "-9223372036854775808" else {
+                // we could end up here if the value for sAMAccountName is not correct
+                // in which case we can't really determine the expiration if one exists
+                return
+            }
 
-            if ( passwordExpirationLength.count > 15 ) {
+            if passwordExpirationLength.count > 15 {
                 passwordAging = false
-            } else if ( passwordExpirationLength != "" ) && userPasswordUACFlag != "" {
-                if ~~( Int(userPasswordUACFlag)! & 0x10000 ) {
+            } else if passwordExpirationLength != "", userPasswordUACFlag != "" {
+                if ~~(Int(userPasswordUACFlag)! & 0x10000) {
                     passwordAging = false
                 } else {
                     serverPasswordExpirationDefault = Double(abs(Int(passwordExpirationLength)!)/10000000)
@@ -587,6 +594,7 @@ public class NoMADSession: NSObject {
                 serverPasswordExpirationDefault = Double(0)
                 passwordAging = false
             }
+            
             userPasswordExpireDate = tempPasswordSetDate.addingTimeInterval(serverPasswordExpirationDefault)
         }
     }
@@ -611,7 +619,7 @@ public class NoMADSession: NSObject {
         var passwordAging = true
         var tempPasswordSetDate = Date()
         var serverPasswordExpirationDefault = 0.0
-        var userPasswordExpireDate = Date()
+        var userPasswordExpireDate: Date?
         var groups = [String]()
         var userHome = ""
         
@@ -657,9 +665,10 @@ public class NoMADSession: NSObject {
                 
                 lookupRecursiveGroups(dn, &groupsTemp)
                 
-                if (passwordSetDate != "") && (passwordSetDate != nil ) {
-                    tempPasswordSetDate = NSDate(timeIntervalSince1970: (Double(passwordSetDate!)!)/10000000-11644473600) as Date
+                if let passwordSetDate, !passwordSetDate.isEmpty {
+                    tempPasswordSetDate = NSDate(timeIntervalSince1970: (Double(passwordSetDate)!)/10000000-11644473600) as Date
                 }
+                
                 parseExpirationDate(computedExpireDateRaw, &passwordAging, &userPasswordExpireDate, userPasswordUACFlag, &serverPasswordExpirationDefault, tempPasswordSetDate)
                 
                 cleanGroups(groupsTemp, &groups)

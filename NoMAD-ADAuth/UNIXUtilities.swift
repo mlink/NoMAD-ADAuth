@@ -68,8 +68,6 @@ public func cliTask(_ command: String, arguments: [String]? = nil, waitForTermin
     myTask.standardOutput = outputPipe
     myTask.standardInput = myInputPipe
     myTask.standardError = myErrorPipe
-    
-    os.Logger().debug("💻 - \(commandLaunchPath) \(commandPieces)")
 
     myTask.launch()
     
@@ -92,7 +90,7 @@ public func cliTask(_ command: String, arguments: [String]? = nil, waitForTermin
     let error = myErrorPipe.fileHandleForReading.readDataToEndOfFile()
     let outputError = NSString(data: error, encoding: String.Encoding.utf8.rawValue)! as String
     
-    os.Logger().debug("🏁\n\(outputString + outputError)")
+    os.Logger().debug("💻 \(commandLaunchPath) \(commandPieces.joined(separator: " "))\n🏁\n\(outputString + outputError)")
     
     return outputString + outputError
 }
