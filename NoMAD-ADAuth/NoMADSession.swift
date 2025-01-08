@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os.log
 import NoMADPRIVATE
 
 public protocol NoMADUserSession {
@@ -659,8 +660,8 @@ public class NoMADSession: NSObject {
                     customAttributeResults = tempCustomAttr
                 }
                 
-                if ldapResult.count == 0 {
-                    // we didn't get a result
+                if ldapResult.isEmpty {
+                    os.Logger(log).error("no result for LDAP user search: \(attributes.joined(separator: " "), privacy: .public)")
                 }
                 
                 lookupRecursiveGroups(dn, &groupsTemp)

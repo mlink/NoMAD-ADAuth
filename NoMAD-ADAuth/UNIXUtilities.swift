@@ -90,7 +90,8 @@ public func cliTask(_ command: String, arguments: [String]? = nil, waitForTermin
     let error = myErrorPipe.fileHandleForReading.readDataToEndOfFile()
     let outputError = NSString(data: error, encoding: String.Encoding.utf8.rawValue)! as String
     
-    os.Logger().debug("💻 \(commandLaunchPath) \(commandPieces.joined(separator: " "))\n🏁\n\(outputString + outputError)")
+    // should keep this values private just in case, this statement is useful to understand how menubar is using this code
+    os.Logger(log).debug("💻 \(commandLaunchPath) \(commandPieces.joined(separator: " "))\n🏁\n\(outputString + outputError)")
     
     return outputString + outputError
 }

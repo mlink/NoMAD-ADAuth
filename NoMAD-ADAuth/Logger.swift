@@ -34,12 +34,8 @@ enum LogLevel: Int {
     case debug = 3
 }
 
-var log: OSLog? {
-    if #available(OSX 10.12, *) {
-        return OSLog(subsystem: "menu.nomad.login.ad", category: "framework")
-    } else {
-        return nil
-    }
+var log: OSLog {
+    OSLog(subsystem: "menu.nomad.login.ad", category: "framework")
 }
 
 
@@ -70,11 +66,7 @@ class Logger {
     ///   - message: A `String` that describes the information to be logged
     func logit(_ level: LogLevel, message: String) {
         if (level.rawValue <= loglevel.rawValue) {
-            if #available(OSX 10.12, *) {
-                os_log("%{public}@", log: log!, type: .debug, message)
-            } else {
-                NSLog("level: \(level) - " + message)
-            }
+            os_log("%{public}@", log: log, type: .debug, message)
         }
     }
 }
